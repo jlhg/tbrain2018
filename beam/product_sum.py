@@ -15,7 +15,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 def split(element):
     data = element.strip().split(',')
     file_id = data[0]
-    customer_id = data[3]
+    product_id = data[3]
     return (file_id, product_id)
 
 def format_result(element):
