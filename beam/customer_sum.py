@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-# Usage:
-# python customer_sum.py --project $project --runner DataflowRunner \
-#   --staging_location gs://${bucket}/staging --temp_location gs://${bucket}/temp \
-#   --zone asia-east1-a --input gs://${bucket}/query_log.csv \
-#   --output gs://${bucket}/output/customer_sum/customer_sum
-
 import argparse
 import apache_beam as beam
 from apache_beam.io import ReadFromText
