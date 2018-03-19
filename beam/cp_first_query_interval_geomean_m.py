@@ -70,7 +70,7 @@ def run(argv=None):
             lines
             | 'Split' >> beam.Map(split)
             | 'Group' >> beam.GroupByKey()
-            | 'CPIntervalGeomeanM' >> beam.Map(mean)
+            | 'CPFirstIntervalGeomeanM' >> beam.Map(mean)
             | 'FormatResult' >> beam.Map(format_result)
         )
         results | 'WriteToText' >> WriteToText(known_args.output)
