@@ -22,7 +22,7 @@ def std(element):
             count_per_element[customer_id] = 1
         else:
             count_per_element[customer_id] += 1
-    result = numpy.std(list(count_per_element.values()), ddof=1)
+    result = numpy.std(list(count_per_element.values()))
     return (file_id, result)
 
 def format_result(element):
