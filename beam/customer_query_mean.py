@@ -11,6 +11,7 @@ import numpy
 from apache_beam.io import ReadFromText
 from apache_beam.io import WriteToText
 from apache_beam.options.pipeline_options import PipelineOptions
+from apache_beam.options.pipeline_options import SetupOptions
 
 
 def split(element):
@@ -21,11 +22,13 @@ def split(element):
 
 def mean(element):
     (file_id, customer_ids) = element
-    result = (
-        customer_ids
-        | 'CountPerElement' >> beam.combiners.Count.PerElement()
-        | 'CalculateMean' >> beam.Map(lambda x: numpy.mean(list(x[1])))
-    )
+    count_per_element = {}
+    for customer_id in customer_ids:
+        if customer_id not in count_per_element:
+            count_per_element[customer_id] = 1
+        else:
+            count_per_element[customer_id] += 1
+    result = numpy.mean(list(count_per_element.values()))
     return (file_id, result)
 
 def format_result(element):
@@ -44,6 +47,7 @@ def run(argv=None):
                         help='Output file to write results to.')
     known_args, pipeline_args = parser.parse_known_args(argv)
     pipeline_options = PipelineOptions(pipeline_args)
+    pipeline_options.view_as(SetupOptions).save_main_session = True
 
     with beam.Pipeline(options=pipeline_options) as p:
         lines = p | 'ReadFromText' >> ReadFromText(known_args.input)
