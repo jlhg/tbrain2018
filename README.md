@@ -1,4 +1,4 @@
-# Google Cloud Dataflow scripts for Trend AI content
+# Google Cloud Dataflow scripts for 2018 Trend AI contest
 
 ## Usage
 
