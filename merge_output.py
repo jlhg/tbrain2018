@@ -3,7 +3,7 @@ import os
 import re
 
 header_path = './header.txt'
-data_dir_path = './data'
+data_dir_path = './data/output'
 output_path = './data/data.csv'
 
 def snake_case(name):
