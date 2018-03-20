@@ -6,9 +6,10 @@ from apache_beam.io import ReadFromText
 from apache_beam.io import WriteToText
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
+from scipy import stats
 
 
-def interval_std(array):
+def interval_skew(array):
     if len(array) <= 1:
         return 0
 
@@ -18,7 +19,7 @@ def interval_std(array):
         if i == len(sorted_array) - 1:
             break
         intervals.append(sorted_array[i + 1] - sorted_array[i])
-    return numpy.std(intervals)
+    return stats.skew(intervals)
 
 def split(element):
     data = element.strip().split(',')
@@ -27,7 +28,7 @@ def split(element):
     cp_id = '%s:%s' % (data[1], data[3])
     return (file_id, (cp_id, timestamp))
 
-def mean(element):
+def skew(element):
     (file_id, pairs) = element
 
     cp_timestamps = {}
@@ -41,7 +42,7 @@ def mean(element):
     for cp_id, timestamps in cp_timestamps.items():
         first_timestamps.append(sorted(timestamps)[0])
 
-    result = interval_std(first_timestamps)
+    result = interval_skew(first_timestamps)
     return (file_id, result)
 
 def format_result(element):
@@ -68,7 +69,7 @@ def run(argv=None):
             lines
             | 'Split' >> beam.Map(split)
             | 'Group' >> beam.GroupByKey()
-            | 'CPFirstIntervalStdM' >> beam.Map(mean)
+            | 'CPFirstIntervalSkew' >> beam.Map(skew)
             | 'FormatResult' >> beam.Map(format_result)
         )
         results | 'WriteToText' >> WriteToText(known_args.output)

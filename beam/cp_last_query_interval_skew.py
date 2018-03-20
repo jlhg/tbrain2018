@@ -9,7 +9,7 @@ from apache_beam.options.pipeline_options import SetupOptions
 from scipy import stats
 
 
-def interval_kurtosis(array):
+def interval_skew(array):
     if len(array) <= 1:
         return 0
 
@@ -19,7 +19,7 @@ def interval_kurtosis(array):
         if i == len(sorted_array) - 1:
             break
         intervals.append(sorted_array[i + 1] - sorted_array[i])
-    return stats.kurtosis(intervals)
+    return stats.skew(intervals)
 
 def split(element):
     data = element.strip().split(',')
@@ -28,7 +28,7 @@ def split(element):
     cp_id = '%s:%s' % (data[1], data[3])
     return (file_id, (cp_id, timestamp))
 
-def mean(element):
+def skew(element):
     (file_id, pairs) = element
 
     cp_timestamps = {}
@@ -38,11 +38,11 @@ def mean(element):
         else:
             cp_timestamps[cp_id] = [timestamp]
 
-    first_timestamps = []
+    last_timestamps = []
     for cp_id, timestamps in cp_timestamps.items():
-        first_timestamps.append(sorted(timestamps)[0])
+        last_timestamps.append(sorted(timestamps)[-1])
 
-    result = interval_kurtosis(first_timestamps)
+    result = interval_skew(last_timestamps)
     return (file_id, result)
 
 def format_result(element):
@@ -69,7 +69,7 @@ def run(argv=None):
             lines
             | 'Split' >> beam.Map(split)
             | 'Group' >> beam.GroupByKey()
-            | 'CPFirstIntervalKurtosisM' >> beam.Map(mean)
+            | 'CPLastIntervalSkew' >> beam.Map(skew)
             | 'FormatResult' >> beam.Map(format_result)
         )
         results | 'WriteToText' >> WriteToText(known_args.output)

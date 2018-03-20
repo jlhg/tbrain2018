@@ -6,10 +6,9 @@ from apache_beam.io import ReadFromText
 from apache_beam.io import WriteToText
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
-from scipy import stats
 
 
-def interval_geomean(array):
+def interval_mean(array):
     if len(array) <= 1:
         return 0
 
@@ -19,8 +18,7 @@ def interval_geomean(array):
         if i == len(sorted_array) - 1:
             break
         intervals.append(sorted_array[i + 1] - sorted_array[i])
-    np_intervals = numpy.array(intervals)
-    return stats.gmean(np_intervals[np_intervals != 0])
+    return numpy.mean(intervals)
 
 def split(element):
     data = element.strip().split(',')
@@ -39,11 +37,11 @@ def mean(element):
         else:
             cp_timestamps[cp_id] = [timestamp]
 
-    last_timestamps = []
+    first_timestamps = []
     for cp_id, timestamps in cp_timestamps.items():
-        last_timestamps.append(sorted(timestamps)[-1])
+        first_timestamps.append(sorted(timestamps)[0])
 
-    result = interval_geomean(last_timestamps)
+    result = interval_mean(first_timestamps)
     return (file_id, result)
 
 def format_result(element):
@@ -70,7 +68,7 @@ def run(argv=None):
             lines
             | 'Split' >> beam.Map(split)
             | 'Group' >> beam.GroupByKey()
-            | 'CPLastIntervalGeomeanM' >> beam.Map(mean)
+            | 'CPFirstIntervalMean' >> beam.Map(mean)
             | 'FormatResult' >> beam.Map(format_result)
         )
         results | 'WriteToText' >> WriteToText(known_args.output)

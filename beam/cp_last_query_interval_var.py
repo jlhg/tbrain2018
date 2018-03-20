@@ -8,7 +8,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import SetupOptions
 
 
-def interval_max(array):
+def interval_var(array):
     if len(array) <= 1:
         return 0
 
@@ -18,7 +18,7 @@ def interval_max(array):
         if i == len(sorted_array) - 1:
             break
         intervals.append(sorted_array[i + 1] - sorted_array[i])
-    return max(intervals)
+    return numpy.var(intervals)
 
 def split(element):
     data = element.strip().split(',')
@@ -27,7 +27,7 @@ def split(element):
     cp_id = '%s:%s' % (data[1], data[3])
     return (file_id, (cp_id, timestamp))
 
-def mean(element):
+def variance(element):
     (file_id, pairs) = element
 
     cp_timestamps = {}
@@ -37,11 +37,11 @@ def mean(element):
         else:
             cp_timestamps[cp_id] = [timestamp]
 
-    first_timestamps = []
+    last_timestamps = []
     for cp_id, timestamps in cp_timestamps.items():
-        first_timestamps.append(sorted(timestamps)[0])
+        last_timestamps.append(sorted(timestamps)[-1])
 
-    result = interval_max(first_timestamps)
+    result = interval_var(last_timestamps)
     return (file_id, result)
 
 def format_result(element):
@@ -68,7 +68,7 @@ def run(argv=None):
             lines
             | 'Split' >> beam.Map(split)
             | 'Group' >> beam.GroupByKey()
-            | 'CPFirstIntervalMaxM' >> beam.Map(mean)
+            | 'CPLastIntervalVar' >> beam.Map(variance)
             | 'FormatResult' >> beam.Map(format_result)
         )
         results | 'WriteToText' >> WriteToText(known_args.output)
