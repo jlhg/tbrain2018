@@ -15,7 +15,7 @@ def split(element):
 
 def format_result(element):
     (file_id, cp_ids) = element
-    return '%s,%s' % (file_id, len(list(cp_ids)))
+    return '%s,%s' % (file_id, len(set(cp_ids)))
 
 def run(argv=None):
     parser = argparse.ArgumentParser()
